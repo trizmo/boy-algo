@@ -1,14 +1,22 @@
 console.log("=BOT STARTING=")
 
-var Twitter = require('twitter');
+const Twitter = require('twitter');
  
-var config = require('./config');
+const config = require('./config');
+
+const Twit = new Twitter(config)
  
-var params = {screen_name: 'nodejs'};
-client.get('statuses/user_timeline', params, function(error, tweets, response) {
-  if (!error) {
-    console.log(tweets);
+const tweet = {
+  status: "hello world3"
+}
+
+Twit.post('statuses/update', tweet,  function(error, tweet, response) {
+  if(error){
+    console.log(error)
   }
+  console.log("SUCCESS")
+  // console.log(tweet);  // Tweet body.
+  // console.log(response);  // Raw response object.
 });
 
-console.log(config)
+
