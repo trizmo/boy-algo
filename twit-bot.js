@@ -1,92 +1,154 @@
 console.log("=BOT STARTING=")
-console.log("@BoyAlgo - a Twitter bot that alerts you when your stock and coin price reach a target number")
-console.log("=============================================================================================")
-console.log("=============================================================================================")
-console.log("=============================================================================================")
+console.log("@BoyAlgo - Algorithmic Trading Bot")
+console.log("==============================================")
 
+var alertList = require("./alertList.js");
 let ready = false;
-
 let priceFetchCounter = 0;
-
 const Twitter = require('twitter');
-
 const config = require('./config');
-
-const Twit = new Twitter(config)
-
-var ajax = require("ajax-request")
+const Twit = new Twitter(config);
+var ajax = require("ajax-request");
 var https = require("https");
+var firebase = require("firebase");
+var allSymbols;
+var ALLDATA = {};
+var alldataCounter = 0;
 
-ibm: 121.00
-sndx: 4.85
-rht: 174.50
+// ### FIREBASE CONFIGs
+var FBconfig = {
+  apiKey: "AIzaSyAlCXQUsNZnHq0ViG6KYg7yNz9a34OuHfE",
+  authDomain: "market-system-a6b28.firebaseapp.com",
+  databaseURL: "https://market-system-a6b28.firebaseio.com",
+  projectId: "market-system-a6b28",
+  storageBucket: "market-system-a6b28.appspot.com",
+  messagingSenderId: "609139349737"
+};
 
-const alertList = [
-  ibm = {
-    symbol: "IBM",
-    targetUP: ["119.30"],
-    targetDN: ["117.18"],
-    current: 0,
-    type: "stock",
-    triggered: false
-  },
+firebase.initializeApp(FBconfig);
+var database = firebase.database();
 
-  sndx = {
-    symbol: "SNDX",
-    targetUP: ["5.20"],
-    targetDN: ["4.950"],
-    current: 0,
-    type: "stock",
-    triggered: true
-  },
+// database.ref().on("value", function (snapshot) {
+//   console.log("Firebase Snapshot: ")
+//   let newList = snapshot.val()
+//   // console.log(newList.alertList)
+//   alertList = newList.alertList
+//   console.log(alertList)
+// });
 
-  rht = {
-    symbol: "RHT",
-    targetUP: ["173.45"],
-    targetDN: ["172.50"],
-    current: 0,
-    type: "stock",
-    triggered: false
-  },
+// ## TO RESTART DB
+// updateFirebase()
 
-  xrp = {
-    symbol: "XRP",
-    targetUP: [0.51],
-    targetDN: [0.40],
-    current: 0,
-    type: "crypto",
-    triggered: false
-  },
 
-  btc = {
-    symbol: "BTC",
-    targetUP: [4600],
-    targetDN: [4550],
-    current: 0,
-    type: "crypto",
-    triggered: false
-  },
+function updateFirebase() {
+  database.ref("alertList").set({
+    alertList
+  })
+}
 
-  ltc = {
-    symbol: "LTC",
-    targetUP: [34],
-    targetDN: [33.00],
-    current: 0,
-    type: "crypto",
-    triggered: false
-  },
+function updateAllSymbols() {
+  console.log("running updateAllSymbols")
+  database.ref("all-symbols-ONLY").on("value", function (snapshot) {
+    console.log("Firebase Snapshot OK")
+    allSymbols = snapshot.val()
+    console.log("update complete")
+    console.log("===============")
+    // console.log("Example symbol: ")
+    // console.log(allSymbols[Object.keys(allSymbols)[0]  ] )
+    collectKeyStats()
+  })
+}
 
-  TRX = {
-    symbol: "TRX",
-    targetUP: [0.015],
-    targetDN: [0.013],
-    current: 0,
-    type: "crypto",
-    triggered: false
+// const index = 0
+// const end = 100
+
+// every second function collectKeyStats() { } will run
+// once function is done running, i = end, end += 200.
+// if end >= 8000. exit
+
+// function checkNIncrease(index, end) {
+//   if (end >= 8000) {
+//     console.log("EXITING")
+//     process.exit(1);
+//   } else {
+//     index = end
+//     end += 50
+//   }
+// }
+
+// setInterval(function () {
+//   collectKeyStats(index, end)
+//   checkNIncrease(index, end)
+
+// }, 1000 * 5)
+
+
+// https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=MSFT&apikey=N06BDYLYWYZK0MA6
+
+function collectKeyStats() {
+  console.log("running collectKeyStats")
+
+
+  for (let key in allSymbols) {
+
+    for (let i = 0; i < 3500; i++) {
+
+      const options = {
+        hostname: "api.iextrading.com",
+        port: 443,
+        path: "/1.0/stock/" + allSymbols[key].allSymbolsONLY[i] + "/stats",
+        method: "GET"
+      }
+
+      let tempData = []
+      req = https.get(options, function (res) {
+        res.on("data", function (data) {
+          alldataCounter++
+          tempData += data;
+          tempData = JSON.parse(tempData)
+          console.log("calls for ALLDATA " + alldataCounter)
+
+
+        })
+
+        res.on("end", function () {
+          // JSON.parse(Buffer.concat(tempData).toString())
+          // onSuccess({
+          //   status: res.statusCode,
+          //   headers: res.headers,
+          //   json: JSON.parse(Buffer.concat(tempData).toString())
+          // })
+
+
+
+          ALLDATA = tempData
+
+          // console.log(ALLDATA["companyName"])
+          // console.log("push to ALLDATA")
+          var stockInfo = {
+            symbol: ALLDATA["symbol"],
+            day200MovingAvg: ALLDATA["day200MovingAvg"],
+            day50MovingAvg: ALLDATA["day50MovingAvg"],
+            companyName: ALLDATA["companyName"],
+          }
+          console.log(stockInfo)
+
+          database.ref("ALLDATA").push({
+            stockInfo
+          })
+
+        })
+
+      })
+
+    }
+
   }
+  // console.log("EXITING")
+  // process.exit(1);
+}
 
 
-]
 
 function everythingLog() {
   console.log(alertList)
@@ -162,30 +224,26 @@ function initializePriceing() {
 }
 
 
+
+
 function getPricing() {
-
-  let masterArray = [];
-
+  updateFirebase()
   for (let i = 0; i < alertList.length; i++) {
     if (alertList[i].type === "stock") {
-
       const options = {
         hostname: "api.iextrading.com",
         port: 443,
         path: "/1.0/stock/" + alertList[i].symbol + "/price",
         method: "GET"
       }
-
       let price = ""
       req = https.get(options, function (res) {
         res.on("data", function (data) {
           priceFetchCounter++
           price += data;
           alertList[i].current = price
-
         })
         res.on("end", function () {
-
         })
       })
     } else if (alertList[i].type === "crypto") {
@@ -216,13 +274,23 @@ function getPricing() {
         res.on("data", function (data) {
           toparse += data;
           console.log(toparse)
-          cryptoPrice = JSON.parse(toparse);
-          // console.log("coin price data...:");
-          // console.log(cryptoPrice[coinSym].USD);
-          // console.log(typeof (cryptoPrice[coinSym].USD))
-          stringed = JSON.stringify(cryptoPrice[coinSym].USD)
-          // console.log(alertList[i])
-          alertList[i].current = cryptoPrice[coinSym].USD
+          if (toparse.substring(0, 1) === "<") {
+            console.log("ERROR TRIGGER: " + toparse.substring(0, 1))
+            errorTweet()
+          } else {
+            // console.log("DATA GOOD: " + toparse.substring(0,1))
+
+            cryptoPrice = JSON.parse(toparse);
+            // console.log("coin price data...:");
+            // console.log(cryptoPrice[coinSym].USD);
+            // console.log(typeof (cryptoPrice[coinSym].USD))
+            stringed = JSON.stringify(cryptoPrice[coinSym].USD)
+            // console.log(alertList[i])
+            alertList[i].current = cryptoPrice[coinSym].USD
+          }
+
+
+
 
         })
       })
@@ -245,59 +313,89 @@ function getPricing() {
 
 
 
-function checkTargetPrice() {
-  for (let i = 0; i < alertList.length; i++) {
+// function checkTargetPrice() {
+//   for (let i = 0; i < alertList.length; i++) {
+//     if (alertList[i].current === 0) {
+//       initializePriceing()
+//     }
 
-    for (let j = 0; j < alertList[i].targetUP.length; j++) {
-      if (alertList[i].targetUP[j] <= alertList[i].current && alertList[i].triggered === false) {
-        console.log("ALERT: TARGETup PRICE REACHED FOR: " + alertList[i].symbol);
-        alertList[i].triggered = true;
-        blastTweet(alertList[i]);
+//     for (let j = 0; j < alertList[i].targetUP.length; j++) {
+//       if (alertList[i].targetUP[j] <= alertList[i].current && alertList[i].triggered === false) {
+//         console.log("ALERT: TARGETup PRICE REACHED FOR: " + alertList[i].symbol);
+//         // alertList[i].triggered = true;
+//         alertList[i].targetUP.splice(j, 1, 0)
+//         // console.log("REMOVING: " + alertList[i].targetUP[j])
+//         blastTweet(alertList[i]);
 
-        // console.log("NOTHING TRIGGERED")
-      }
-    }
-    for (let j = 0; j < alertList[i].targetDN.length; j++) {
-      if (alertList[i].targetDN[j] >= alertList[i].current && alertList[i].triggered === false) {
-        console.log("ALERT: TARGETdn PRICE REACHED FOR: " + alertList[i].symbol);
-        alertList[i].triggered = true;
-        blastTweet(alertList[i]);
-      }
-
-    }
-
-
-
-
-
-
-  }
-  console.log(".")
-  everythingLog()
-}
+//         // console.log("NOTHING TRIGGERED")
+//       }
+//     }
+//     for (let j = 0; j < alertList[i].targetDN.length; j++) {
+//       if (alertList[i].targetDN[j] >= alertList[i].current && alertList[i].triggered === false) {
+//         console.log("ALERT: TARGETdn PRICE REACHED FOR: " + alertList[i].symbol);
+//         // alertList[i].triggered = true;
+//         alertList[i].targetDN.splice(j, 1, 0)
+//         // console.log("REMOVING: " + alertList[i].targetDN[j])
 
 
-function blastTweet(target) {
-  console.log("ini tweet")
-  const tweet = {
-    status: "TARGET PRICE REACHED: " + target.symbol + " $" + target.current
-  }
+//         blastTweet(alertList[i]);
+//       }
 
-  Twit.post('statuses/update', tweet, function (error, tweet, response) {
-    if (error) {
-      console.log(error)
-    }
-    console.log("TWEET SUCCESS")
-    // console.log(tweet);  // Tweet body.
-    // console.log(response);  // Raw response object.
-  });
-}
+//     }
 
-initializePriceing()
 
-setInterval(function () {
-  console.log("GETTING PRICE: " + alertList.length);
-  console.log("Fetch Counter: " + priceFetchCounter)
-  getPricing();
 
-}, 1000 * 60)
+
+
+
+//   }
+//   console.log(".")
+//   everythingLog()
+// }
+
+// function errorTweet() {
+//   console.log("ini tweet")
+//   const tweet = {
+//     status: "ERROR RECEIVED: SERVER STILL RUNNING"
+//   }
+
+//   Twit.post('statuses/update', tweet, function (error, tweet, response) {
+//     if (error) {
+//       console.log(error)
+//     }
+//     console.log("ERROR TWEET SUCCESS")
+//     console.log(tweet);  // Tweet body.
+//     console.log(response);  // Raw response object.
+//   });
+// }
+
+
+
+
+
+// function blastTweet(target) {
+//   console.log("ini tweet")
+  // const tweet = {
+  //   status: "TARGET PRICE REACHED: " + target.symbol + " $" + target.current
+  // }
+
+  // Twit.post('statuses/update', tweet, function (error, tweet, response) {
+  //   if (error) {
+  //     console.log(error)
+  //   }
+  //   console.log("TWEET SUCCESS")
+  //   // console.log(tweet);  // Tweet body.
+  //   // console.log(response);  // Raw response object.
+  // });
+// }
+
+updateAllSymbols()
+// collectKeyStats()
+// initializePriceing()
+
+// setInterval(function () {
+//   console.log("GETTING PRICE: " + alertList.length);
+//   console.log("Fetch Counter: " + priceFetchCounter)
+//   getPricing();
+
+// }, 1000 * 5)
