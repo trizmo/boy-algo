@@ -1,3 +1,13 @@
+#boy-algo
+
+This stock alert bot scans a list of your stocks for its current price and compares it to the target prices you have set. 
+@BoyAlgo will notify you with a tweet with the details of the alert.
+
+
+Follow @BoyAlgo on Twitter!
+
+==========================================================
+
 const alertList = [
   ibm = {
     symbol: "ibm",

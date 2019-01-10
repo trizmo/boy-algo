@@ -55,7 +55,7 @@ function updateAllSymbols() {
     console.log("===============")
     // console.log("Example symbol: ")
     // console.log(allSymbols[Object.keys(allSymbols)[0]  ] )
-    collectKeyStats()
+    // collectKeyStats()
   })
 }
 
@@ -305,6 +305,9 @@ function getPricing() {
     }
   }
   if (ready === true) {
+    everythingLog()
+    console.log("ALL CURRNT PRICE UPDATED- CHECKING TARGET PRCING")
+
     checkTargetPrice()
   }
 }
@@ -313,89 +316,94 @@ function getPricing() {
 
 
 
-// function checkTargetPrice() {
-//   for (let i = 0; i < alertList.length; i++) {
-//     if (alertList[i].current === 0) {
-//       initializePriceing()
-//     }
+function checkTargetPrice() {
+  for (let i = 0; i < alertList.length; i++) {
+    if (alertList[i].current === 0) {
+      initializePriceing()
+    }
 
-//     for (let j = 0; j < alertList[i].targetUP.length; j++) {
-//       if (alertList[i].targetUP[j] <= alertList[i].current && alertList[i].triggered === false) {
-//         console.log("ALERT: TARGETup PRICE REACHED FOR: " + alertList[i].symbol);
-//         // alertList[i].triggered = true;
-//         alertList[i].targetUP.splice(j, 1, 0)
-//         // console.log("REMOVING: " + alertList[i].targetUP[j])
-//         blastTweet(alertList[i]);
+    for (let j = 0; j < alertList[i].targetUP.length; j++) {
+      if (alertList[i].targetUP[j] <= alertList[i].current && alertList[i].triggered === false) {
+        console.log("ALERT: TARGETup PRICE REACHED FOR: " + alertList[i].symbol);
+        // alertList[i].triggered = true;
+        alertList[i].targetUP.splice(j, 1, 0)
+        // console.log("REMOVING: " + alertList[i].targetUP[j])
+        blastTweet(alertList[i]);
 
-//         // console.log("NOTHING TRIGGERED")
-//       }
-//     }
-//     for (let j = 0; j < alertList[i].targetDN.length; j++) {
-//       if (alertList[i].targetDN[j] >= alertList[i].current && alertList[i].triggered === false) {
-//         console.log("ALERT: TARGETdn PRICE REACHED FOR: " + alertList[i].symbol);
-//         // alertList[i].triggered = true;
-//         alertList[i].targetDN.splice(j, 1, 0)
-//         // console.log("REMOVING: " + alertList[i].targetDN[j])
+        // console.log("NOTHING TRIGGERED")
+      }
+    }
 
-
-//         blastTweet(alertList[i]);
-//       }
-
-//     }
+    for (let j = 0; j < alertList[i].targetDN.length; j++) {
+      if (alertList[i].targetDN[j] >= alertList[i].current && alertList[i].triggered === false) {
+        console.log("ALERT: TARGETdn PRICE REACHED FOR: " + alertList[i].symbol);
+        // alertList[i].triggered = true;
+        alertList[i].targetDN.splice(j, 1, 0)
+        // console.log("REMOVING: " + alertList[i].targetDN[j])
 
 
+        blastTweet(alertList[i]);
+      }
 
-
-
-
-//   }
-//   console.log(".")
-//   everythingLog()
-// }
-
-// function errorTweet() {
-//   console.log("ini tweet")
-//   const tweet = {
-//     status: "ERROR RECEIVED: SERVER STILL RUNNING"
-//   }
-
-//   Twit.post('statuses/update', tweet, function (error, tweet, response) {
-//     if (error) {
-//       console.log(error)
-//     }
-//     console.log("ERROR TWEET SUCCESS")
-//     console.log(tweet);  // Tweet body.
-//     console.log(response);  // Raw response object.
-//   });
-// }
+    }
 
 
 
 
 
-// function blastTweet(target) {
-//   console.log("ini tweet")
-  // const tweet = {
-  //   status: "TARGET PRICE REACHED: " + target.symbol + " $" + target.current
-  // }
 
-  // Twit.post('statuses/update', tweet, function (error, tweet, response) {
-  //   if (error) {
-  //     console.log(error)
-  //   }
-  //   console.log("TWEET SUCCESS")
-  //   // console.log(tweet);  // Tweet body.
-  //   // console.log(response);  // Raw response object.
-  // });
-// }
+  }
+  console.log(".")
+  everythingLog()
+}
+
+function errorTweet() {
+  console.log("ini tweet")
+  const tweet = {
+    status: "ERROR RECEIVED: SERVER STILL RUNNING"
+  }
+
+  Twit.post('statuses/update', tweet, function (error, tweet, response) {
+    if (error) {
+      console.log(error)
+    }
+    console.log("ERROR TWEET SUCCESS")
+    console.log(tweet);  // Tweet body.
+    console.log(response);  // Raw response object.
+  });
+}
+
+
+
+
+
+function blastTweet(target) {
+  console.log("ini tweet")
+  const tweet = {
+    status: "TARGET PRICE REACHED: " + target.symbol + " $" + target.current
+  }
+
+  Twit.post('statuses/update', tweet, function (error, tweet, response) {
+    if (error) {
+      console.log(error)
+    }
+    console.log("TWEET SUCCESS")
+    // console.log(tweet);  // Tweet body.
+    // console.log(response);  // Raw response object.
+  });
+}
+
+
+
+
 
 updateAllSymbols()
 // collectKeyStats()
-// initializePriceing()
+initializePriceing()
 
-// setInterval(function () {
-//   console.log("GETTING PRICE: " + alertList.length);
-//   console.log("Fetch Counter: " + priceFetchCounter)
-//   getPricing();
+setInterval(function () {
+  console.log("GETTING PRICE: " + alertList.length);
+  console.log("Fetch Counter: " + priceFetchCounter)
+  getPricing();
 
-// }, 1000 * 5)
+}, 1000 * 5)
